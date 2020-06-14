@@ -924,7 +924,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
      * Finally setup the cipher contexts, IVs and MAC secrets.
      */
 #if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         key1 = keyblk + mac_key_len * 2;
         key2 = keyblk + mac_key_len * 2 + transform->keylen;
@@ -944,7 +944,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_SSL_CLI_C */
 #if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         key1 = keyblk + mac_key_len * 2 + transform->keylen;
         key2 = keyblk + mac_key_len * 2;
@@ -2671,7 +2671,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                 return( MBEDTLS_ERR_SSL_WANT_READ );
             }
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
-            else if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            else if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
                      ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
             {
                 if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
@@ -3193,7 +3193,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_CLI_C)
         if( ! ( ssl->minor_ver      == MBEDTLS_SSL_MINOR_VERSION_0 &&
                 ssl->out_msgtype    == MBEDTLS_SSL_MSG_ALERT       &&
-                ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT ) )
+                ssl->endpoint == MBEDTLS_SSL_IS_CLIENT ) )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 && MBEDTLS_SSL_SRV_C */
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -4126,7 +4126,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
              * have an active transform (possibly iv_len != 0), so use the
              * fact that the record header len is 13 instead.
              */
-            if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
                 ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER &&
                 rec_epoch == 0 &&
                 ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
@@ -5198,7 +5198,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_SRV_C)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 &&
-            ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
             ssl->in_msg[0] == MBEDTLS_SSL_ALERT_LEVEL_WARNING &&
             ssl->in_msg[1] == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
         {
@@ -5339,7 +5339,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         if( ssl->client_auth == 0 )
         {
@@ -5368,7 +5368,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 #if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         if( mbedtls_ssl_own_cert( ssl ) == NULL )
         {
@@ -5450,7 +5450,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
     /*
      * Check if the client sent an empty certificate
      */
-    if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
+    if( ssl->endpoint  == MBEDTLS_SSL_IS_SERVER &&
         ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         if( ssl->in_msglen  == 2                        &&
@@ -5471,7 +5471,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
+    if( ssl->endpoint  == MBEDTLS_SSL_IS_SERVER &&
         ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
@@ -5610,7 +5610,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
      * avoid "triple handshake" attack: https://secure-resumption.com/
      */
 #if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT &&
         ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
     {
         if( ssl->session->peer_cert == NULL )
@@ -5665,7 +5665,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
@@ -5673,7 +5673,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
         authmode == MBEDTLS_SSL_VERIFY_NONE )
     {
         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
@@ -5785,7 +5785,7 @@ crt_verify:
 
         if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                  ciphersuite_info,
-                                 ! ssl->conf->endpoint,
+                                 ! ssl->endpoint,
                                  &ssl->session_negotiate->verify_result ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
@@ -6399,7 +6399,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 
     ssl_update_out_pointers( ssl, ssl->transform_negotiate );
 
-    ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
+    ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->endpoint );
 
     /*
      * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
@@ -6425,11 +6425,11 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     if( ssl->handshake->resume != 0 )
     {
 #if defined(MBEDTLS_SSL_CLI_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
             ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
             ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
 #endif
     }
@@ -6523,7 +6523,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
 
-    ssl->handshake->calc_finished( ssl, buf, ssl->conf->endpoint ^ 1 );
+    ssl->handshake->calc_finished( ssl, buf, ssl->endpoint ^ 1 );
 
     if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
     {
@@ -6573,11 +6573,11 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
     if( ssl->handshake->resume != 0 )
     {
 #if defined(MBEDTLS_SSL_CLI_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
             ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
             ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
 #endif
     }
@@ -6719,7 +6719,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     {
         ssl->handshake->alt_transform_out = ssl->transform_out;
 
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_PREPARING;
         else
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
@@ -7060,10 +7060,13 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
 /*
  * SSL set accessors
  */
+#if 0
+/* Replaced with mbedtls_ssl_endpoint() below. */
 void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint )
 {
     conf->endpoint   = endpoint;
 }
+#endif
 
 void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport )
 {
@@ -7143,6 +7146,11 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
     ssl->f_recv_timeout = f_recv_timeout;
 }
 
+void mbedtls_ssl_endpoint( mbedtls_ssl_context *ssl, int endpoint )
+{
+    ssl->endpoint = endpoint;
+}
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu )
 {
@@ -7188,7 +7196,7 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
     if( ssl == NULL ||
         session == NULL ||
         ssl->session_negotiate == NULL ||
-        ssl->conf->endpoint != MBEDTLS_SSL_IS_CLIENT )
+        ssl->endpoint != MBEDTLS_SSL_IS_CLIENT )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -7315,7 +7323,7 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
     if( ssl->handshake == NULL || ssl->conf == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
         role = MBEDTLS_ECJPAKE_SERVER;
     else
         role = MBEDTLS_ECJPAKE_CLIENT;
@@ -7963,7 +7971,7 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
 {
     /* Return unlimited mtu for client hello messages to avoid fragmentation. */
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT &&
         ( ssl->state == MBEDTLS_SSL_CLIENT_HELLO ||
           ssl->state == MBEDTLS_SSL_SERVER_HELLO ) )
         return ( 0 );
@@ -8040,7 +8048,7 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
     if( ssl == NULL ||
         dst == NULL ||
         ssl->session == NULL ||
-        ssl->conf->endpoint != MBEDTLS_SSL_IS_CLIENT )
+        ssl->endpoint != MBEDTLS_SSL_IS_CLIENT )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -8060,11 +8068,11 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
         ret = mbedtls_ssl_handshake_client_step( ssl );
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
         ret = mbedtls_ssl_handshake_server_step( ssl );
 #endif
 
@@ -8147,7 +8155,7 @@ static int ssl_start_renegotiation( mbedtls_ssl_context *ssl )
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
     {
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
             ssl->handshake->out_msg_seq = 1;
         else
             ssl->handshake->in_msg_seq = 1;
@@ -8181,7 +8189,7 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_SRV_C)
     /* On server, just send the request */
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -8363,7 +8371,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
              */
 
 #if defined(MBEDTLS_SSL_CLI_C)
-            if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+            if( ssl->endpoint == MBEDTLS_SSL_IS_CLIENT &&
                 ( ssl->in_msg[0] != MBEDTLS_SSL_HS_HELLO_REQUEST ||
                   ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) ) )
             {
@@ -8381,7 +8389,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 #endif /* MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_SRV_C)
-            if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+            if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
                 ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_HELLO )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake received (not ClientHello)" ) );
@@ -8411,7 +8419,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 /* DTLS clients need to know renego is server-initiated */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
                 if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                    ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+                    ssl->endpoint == MBEDTLS_SSL_IS_CLIENT )
                 {
                     ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
                 }
@@ -8524,7 +8532,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
          * Do it now, after setting in_offt, to avoid taking this branch
          * again if ssl_write_hello_request() returns WANT_WRITE */
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+        if( ssl->endpoint == MBEDTLS_SSL_IS_SERVER &&
             ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
             if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
@@ -9065,7 +9073,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
     /* Use the functions here so that they are covered in tests,
      * but otherwise access member directly for efficiency */
-    mbedtls_ssl_conf_endpoint( conf, endpoint );
+//    mbedtls_ssl_conf_endpoint( conf, endpoint );
     mbedtls_ssl_conf_transport( conf, transport );
 
     /*

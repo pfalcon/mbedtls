@@ -977,7 +977,7 @@ struct mbedtls_ssl_config
      * Flags (bitfields)
      */
 
-    unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
+//    unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
     unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
     unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
@@ -1023,6 +1023,9 @@ struct mbedtls_ssl_context
 {
     const mbedtls_ssl_config *conf; /*!< configuration information          */
 
+    /* Moved from mbedtls_ssl_config, to allow to create both client and
+       server sockets from the same config */
+    unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
     /*
      * Miscellaneous
      */
@@ -1261,6 +1264,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
  */
 int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 
+#if 0
 /**
  * \brief          Set the current endpoint type
  *
@@ -1268,6 +1272,7 @@ int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
  * \param endpoint must be MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
  */
 void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
+#endif
 
 /**
  * \brief           Set the transport type (TLS or DTLS).
@@ -1394,6 +1399,13 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           mbedtls_ssl_send_t *f_send,
                           mbedtls_ssl_recv_t *f_recv,
                           mbedtls_ssl_recv_timeout_t *f_recv_timeout );
+/**
+ * \brief          Set the current endpoint type
+ *
+ * \param ssl      SSL context
+ * \param endpoint must be MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
+ */
+void mbedtls_ssl_endpoint( mbedtls_ssl_context *ssl, int endpoint );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 /**
@@ -3217,7 +3229,9 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
  *                 (You need to call mbedtls_ssl_config_init() first.)
  *
  * \param conf     SSL configuration context
- * \param endpoint MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
+ * \param endpoint MBEDTLS_SSL_IS_CLIENT if this configuration context will
+ *                 be used only for client connections, or MBEDTLS_SSL_IS_SERVER
+ *                 if it will be used for server, or both client and server.
  * \param transport MBEDTLS_SSL_TRANSPORT_STREAM for TLS, or
  *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS
  * \param preset   a MBEDTLS_SSL_PRESET_XXX value
